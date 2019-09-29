@@ -1,11 +1,11 @@
-const imageMagic = require('imagemagic');
+const imageMagic = require('imagemagick');
 const fs = require('fs');
 const os = require('os');
 const uuid = require('uuid/v4');
 const { promisify } = require('util');
 const aws = require('aws-sdk');
-aws.config.update({ region: 'us-east-1' });
-const s2 = new aws.S3();
+      aws.config.update({ region: 'us-east-1' });
+const s3 = new aws.S3();
 const resizeImageAsync = promisify(imageMagic.resize);
 const readsFileAsync = promisify(fs.readFile);
 const unlinkFileAsync = promisify(fs.unlink);
@@ -30,6 +30,7 @@ exports.handler = async (event) => {
             width: 150
         };
 
+
         //resize using image magic
         await resizeImageAsync(resizeArgs);
 
@@ -38,15 +39,14 @@ exports.handler = async (event) => {
 
         //upload the new file to s3
         let targetFileName = fileName.substring(0, fileName.lastIndexOf('.')) + " -small.jpg";
-
-        let params = {
-            Bucket: bucket + "-dest", key: targetFileName, Body: new Buffer(resizedData), ContentType: 'image/jpeg'
+        
+        params = {
+            Bucket: "purna-srcimages-dest", Key: targetFileName, Body: new Buffer(resizedData), ContentType: 'image/jpeg'
         };
         await s3.putObject(params).promise();
-        return await unlinkFileAsync(temp);
+        return await unlinkFileAsync(tempFile);
     });
 
     await Promise.all(filesProcessed);
-    console.log("done");
     return "done";
 }
